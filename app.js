@@ -1,4 +1,4 @@
-const URL='https://gpukluiksejdpbbtiyze.supabase.co';const KEY='sb_publishable_qvM58njlnFC00YXyfIE0k_uvI1Dbf3';const db=window.supabase.createClient(URL,KEY);
+const URL='https://gpukluiksejdpbbtiyze.supabase.co';const KEY='sb_publishable_qvM58njlnFC00YXyfIE0k_uvI1Dbf3';const db=window.supabase?.createClient?window.supabase.createClient(URL,KEY):null;
 let mode='login',user=null,me=null,people=[],tasks=[];
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), manager=()=>['Quản trị viên','Chỉ huy'].includes(me?.role), norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 async function profile(u){let r=await db.from('qlcv_profiles').select('*').eq('id',u.id).maybeSingle();if(r.error)throw r.error;if(r.data)return r.data;let name=u.user_metadata?.full_name||u.email?.split('@')[0]||'Cán bộ';let x=await db.from('qlcv_profiles').insert({id:u.id,full_name:name}).select().single();if(x.error)throw x.error;return x.data}
@@ -17,4 +17,4 @@ $('newTask').onclick=()=>{if(!manager())return;$('tAssignee').innerHTML=people.f
 $('taskForm').onsubmit=async e=>{e.preventDefault();let r=await db.from('qlcv_tasks').insert({title:$('tTitle').value.trim(),description:$('tDesc').value.trim(),assignee_id:$('tAssignee').value||null,created_by:user.id,due_date:$('tDue').value||null,priority:$('tPriority').value,task_group:$('tGroup').value});if(r.error)alert(r.error.message);else{$('modal').classList.add('hidden');await load()}};
 $('uProgress').oninput=()=>{$('uLabel').textContent=$('uProgress').value+'%'};$('uCancel').onclick=()=>$('updateModal').classList.add('hidden');
 $('updateForm').onsubmit=async e=>{e.preventDefault();let id=$('uId').value,progress=+$('uProgress').value,status=$('uStatus').value;let r=await db.from('qlcv_tasks').update({progress,status,updated_at:new Date().toISOString()}).eq('id',id);if(r.error)alert(r.error.message);else{let x=await db.from('qlcv_task_updates').insert({task_id:id,updated_by:user.id,progress,status,note:$('uNote').value.trim()});if(x.error)console.warn(x.error);$('updateModal').classList.add('hidden');await load()}};
-load();
+if(db)load();else $('authMsg').textContent='Không tải được thư viện kết nối. Vui lòng tải lại trang.';
